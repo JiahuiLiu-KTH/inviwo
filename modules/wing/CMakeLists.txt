@@ -1,6 +1,8 @@
 ivw_module(Wing)
 
 set(HEADER_FILES
+    include/KTH/wing/datastructures/feature.h
+    include/KTH/wing/processors/wingfeatureselector.h
     include/KTH/wing/processors/wingmeshreader.h
     include/KTH/wing/wingmodule.h
     include/KTH/wing/wingmoduledefine.h
@@ -8,6 +10,8 @@ set(HEADER_FILES
 ivw_group("Header Files" ${HEADER_FILES})
 
 set(SOURCE_FILES
+    src/datastructures/feature.cpp
+    src/processors/wingfeatureselector.cpp
     src/processors/wingmeshreader.cpp
     src/wingmodule.cpp
 )
@@ -24,6 +28,10 @@ set(TEST_FILES
 ivw_add_unittest(${TEST_FILES})
 
 ivw_create_module(${SOURCE_FILES} ${HEADER_FILES} ${SHADER_FILES})
+
+target_include_directories(inviwo-module-wing PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../eigenutils/ext/eigengitlab>
+        )
 
 # Add shader directory to install package
 #ivw_add_to_module_pack(${CMAKE_CURRENT_SOURCE_DIR}/glsl)

@@ -32,9 +32,19 @@
 #include <KTH/wing/wingmoduledefine.h>
 
 #include <inviwo/core/datastructures/geometry/mesh.h>  // for DataReaderType
-#include <inviwo/core/io/datareader.h>                 // for DataReaderType
+#include <inviwo/core/io/datareader.h>                 // for DataReaderTyp
 
 namespace inviwo {
+
+struct Vertex {
+    int id;
+    double x;
+    double y;
+    double z;
+    double x_Phy;
+    double y_Phy;
+    double z_Phy;
+};
 
 /**
  * \class WingMeshReader
@@ -52,6 +62,8 @@ public:
     virtual ~WingMeshReader() = default;
 
     virtual std::shared_ptr<Mesh> readData(std::string_view filePath) override;
+
+    std::vector<Vertex> readMesh_binary(const std::string& filePath);
 
 };
 

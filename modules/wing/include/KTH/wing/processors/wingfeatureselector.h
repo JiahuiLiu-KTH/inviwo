@@ -27,49 +27,38 @@
  *
  *********************************************************************************/
 
-#include <KTH/wing/processors/wingfeatureselector.h>
-#include <KTH/wing/processors/wingmeshreader.h>
-#include <KTH/wing/wingmodule.h>
+#pragma once
+
+#include <KTH/wing/wingmoduledefine.h>
+#include <inviwo/core/processors/processor.h>
+#include <inviwo/core/properties/ordinalproperty.h>
+#include <inviwo/core/ports/datainport.h>
+#include <inviwo/core/ports/dataoutport.h>
+#include <inviwo/core/datastructures/geometry/mesh.h>
+#include <inviwo/core/properties/stringproperty.h>
+#include <KTH/wing/datastructures/feature.h>
 
 namespace inviwo {
 
-WingModule::WingModule(InviwoApplication* app) : InviwoModule(app, "Wing") {
-    // Add a directory to the search path of the Shadermanager
-    // ShaderManager::getPtr()->addShaderSearchPath(getPath(ModulePath::GLSL));
+class IVW_MODULE_WING_API WingFeatureSelector : public Processor {
+public:
+    WingFeatureSelector();
 
-    // Register objects that can be shared with the rest of inviwo here:
+    virtual void process() override;
 
-    // Processors
-    registerProcessor<WingFeatureSelector>();
-    // registerProcessor<WingProcessor>();
+    virtual const ProcessorInfo getProcessorInfo() const override;
+    static const ProcessorInfo processorInfo_;
 
-    // Properties
-    // registerProperty<WingProperty>();
+    std::vector<std::string> getNextLineAndSplitIntoTokens(std::ifstream& str);
+    std::vector<feature> readCSV(const std::string& filePath);
 
-    // Readers and writes
-     registerDataReader(std::make_unique<WingMeshReader>());
-    // registerDataWriter(std::make_unique<WingWriter>());
+private:
+    // ports
+    DataInport<Mesh> inPort_;
+    DataOutport<Mesh> outPort_;
 
-    // Data converters
-    // registerRepresentationConverter(std::make_unique<WingDisk2RAMConverter>());
-
-    // Ports
-    // registerPort<WingOutport>();
-    // registerPort<WingInport>();
-
-    // PropertyWidgets
-    // registerPropertyWidget<WingPropertyWidget, WingProperty>("Default");
-
-    // Dialogs
-    // registerDialog<WingDialog>(WingOutport);
-
-    // Other things
-    // registerCapabilities(std::make_unique<WingCapabilities>());
-    // registerSettings(std::make_unique<WingSettings>());
-    // registerMetaData(std::make_unique<WingMetaData>());
-    // registerPortInspector("WingOutport", "path/workspace.inv");
-    // registerProcessorWidget(std::string processorClassName, std::unique_ptr<ProcessorWidget> processorWidget); 
-    // registerDrawer(util::make_unique_ptr<WingDrawer>());
-}
+    //properties
+    StringProperty propInputFilePrefix;
+};
 
 }  // namespace inviwo

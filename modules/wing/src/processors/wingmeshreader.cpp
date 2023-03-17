@@ -28,6 +28,7 @@
  *********************************************************************************/
 
 #include <KTH/wing/processors/wingmeshreader.h>
+#include <fstream>
 
 namespace inviwo {
 
@@ -39,30 +40,61 @@ WingMeshReader* WingMeshReader::clone() const { return new WingMeshReader(*this)
 
 std::shared_ptr<Mesh> WingMeshReader::readData(std::string_view filePath) {
     // initialize vertex buffer and index buffer
-    auto vertexBuffer = std::make_shared<Buffer<vec3> >();
+    auto vertexBuffer = std::make_shared<Buffer<vec3>>();
     auto vertices = vertexBuffer->getEditableRAMRepresentation();
     auto indexBuffer = std::make_shared<IndexBuffer>();
     auto indices = indexBuffer->getEditableRAMRepresentation();
+    auto indexBuffer_phy = std::make_shared<IndexBuffer>();
+    auto indices_phy = indexBuffer_phy->getEditableRAMRepresentation();
+
+    // read from file
+    auto vertexList = readMesh_binary(std::string(filePath));
 
     // add vertex
-    vertices->reserve(3);
-    vertices->add(vec3(0.0, 0.0, 0.0));
-    vertices->add(vec3(1.0, 0.0, 0.0));
-    vertices->add(vec3(0.0, 1.0, 0.0));
-    vertices->add(vec3(0.0, 0.0, 1.0));
+    vertices->reserve(vertexList.size());
+    for (int i = 0; i < vertexList.size(); ++i) // add physical coordinates
+        vertices->add(vec3(vertexList[i].x_Phy, vertexList[i].y_Phy, vertexList[i].z_Phy));
+
+    for (int i = 0; i < vertexList.size(); ++i) // add deformed coordinates
+        vertices->add(vec3(vertexList[i].x, vertexList[i].y, vertexList[i].z));
 
     // add index
-    indices->add((uint32_t)(0));
-    indices->add((uint32_t)(1));
-    indices->add((uint32_t)(2));
-    indices->add((uint32_t)(3));
+    indices_phy->reserve(vertexList.size());
+    for (int i = 0; i < vertexList.size(); ++i)
+        indices_phy->add((uint32_t)(i));
+
+    indices->reserve(vertexList.size());
+    for (int i = 0; i < vertexList.size(); ++i)
+        indices->add((uint32_t)(i + vertexList.size()));
+
 
     // construct mesh
     auto mesh = std::make_shared<Mesh>();
     mesh->addBuffer(BufferType::PositionAttrib, vertexBuffer);
+//    mesh->addIndices(Mesh::MeshInfo(DrawType::Points, ConnectivityType::None), indexBuffer_phy);
     mesh->addIndices(Mesh::MeshInfo(DrawType::Points, ConnectivityType::None), indexBuffer);
 
     return mesh;
+}
+
+std::vector<Vertex> WingMeshReader::readMesh_binary(const std::string& filePath) {
+    std::ifstream rf(filePath, std::ios::in | std::ios::binary);
+    if(!rf) {
+        std::cout << "Cannot open file!" << std::endl;
+    }
+    rf.seekg (0, rf.end);
+    int size = rf.tellg()/56;
+    rf.seekg (0, rf.beg);
+    std::vector<Vertex> vertices;
+    vertices.resize(size);
+    for(int i = 0; i < size; i++)
+        rf.read((char *) &vertices[i], sizeof(Vertex));
+    rf.close();
+    if(!rf.good()) {
+        std::cout << "Error occurred at reading time!" << std::endl;
+    }
+
+    return vertices;
 }
 
 }  // namespace inviwo
